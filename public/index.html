@@ -12,7 +12,7 @@
       padding: 0;
       height: 100vh;
       width: 100vw;
-      background-color: #000;
+      background-color: #0b0e14;
       overflow: hidden;
       display: flex;
       flex-direction: column;
@@ -20,37 +20,39 @@
     #terminal {
       flex: 1;
       width: 100%;
-      height: calc(100vh - 90px);
-      background: #000;
+      height: calc(100vh - 44px);
+      background: #0b0e14;
     }
+    /* Termius-like Horizontal Scrollable Bar */
     #mobile-toolbar {
-      height: 90px;
-      background: #121212;
+      height: 44px;
+      background: #161b22;
       display: flex;
-      flex-direction: column;
-      justify-content: space-around;
-      border-top: 1px solid #333;
-      padding: 4px;
+      align-items: center;
+      gap: 8px;
+      overflow-x: auto;
+      white-space: nowrap;
+      border-top: 1px solid #2d333b;
+      padding: 0 8px;
+      -webkit-overflow-scrolling: touch;
     }
-    .row {
-      display: flex;
-      justify-content: space-around;
-      width: 100%;
+    #mobile-toolbar::-webkit-scrollbar {
+      display: none; /* Hide scrollbar for clean UI */
     }
     .btn {
-      background: #2a2a2a;
-      color: #fff;
-      border: 1px solid #444;
-      padding: 6px 12px;
+      background: #21262d;
+      color: #c9d1d9;
+      border: 1px solid #30363d;
+      padding: 6px 14px;
       border-radius: 6px;
-      font-weight: bold;
+      font-weight: 600;
       font-size: 13px;
       user-select: none;
-      min-width: 45px;
-      text-align: center;
+      flex-shrink: 0;
     }
     .btn:active {
-      background: #555;
+      background: #343942;
+      color: #fff;
     }
   </style>
 </head>
@@ -58,20 +60,19 @@
 
   <div id="terminal"></div>
 
+  <!-- Single Line Toolbar -->
   <div id="mobile-toolbar">
-    <div class="row">
-      <button class="btn" onclick="sendKey('\x03')">Ctrl+C</button>
-      <button class="btn" onclick="sendKey('\x0f')">Ctrl+O</button>
-      <button class="btn" onclick="sendKey('\x18')">Ctrl+X</button>
-      <button class="btn" onclick="sendKey('\x1b')">ESC</button>
-      <button class="btn" onclick="sendKey('\t')">TAB</button>
-    </div>
-    <div class="row">
-      <button class="btn" onclick="sendKey('\x1b[A')">▲</button>
-      <button class="btn" onclick="sendKey('\x1b[B')">▼</button>
-      <button class="btn" onclick="sendKey('\x1b[D')">◀</button>
-      <button class="btn" onclick="sendKey('\x1b[C')">▶</button>
-    </div>
+    <button class="btn" onclick="sendKey('\x03')">Ctrl+C</button>
+    <button class="btn" onclick="sendKey('\x0f')">Ctrl+O</button>
+    <button class="btn" onclick="sendKey('\x18')">Ctrl+X</button>
+
+    <button class="btn" onclick="sendKey('\x1b[A')">▲</button>
+    <button class="btn" onclick="sendKey('\x1b[B')">▼</button>
+    <button class="btn" onclick="sendKey('\x1b[D')">◀</button>
+    <button class="btn" onclick="sendKey('\x1b[C')">▶</button>
+
+    <button class="btn" onclick="sendKey('\x1b')">ESC</button>
+    <button class="btn" onclick="sendKey('\t')">TAB</button>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
@@ -84,7 +85,10 @@
       cursorBlink: true,
       fontSize: 14,
       convertEol: true,
-      theme: { background: '#000000' }
+      theme: {
+        background: '#0b0e14',
+        foreground: '#c9d1d9'
+      }
     });
     const fitAddon = new FitAddon.FitAddon();
     term.loadAddon(fitAddon);
@@ -92,6 +96,7 @@
     const termContainer = document.getElementById('terminal');
     term.open(termContainer);
 
+    // Initial Fit & Focus
     setTimeout(() => {
       fitAddon.fit();
       term.focus();
@@ -114,7 +119,9 @@
       focusTerminal();
     }
 
-    window.addEventListener('resize', () => fitAddon.fit());
+    window.addEventListener('resize', () => {
+      fitAddon.fit();
+    });
   </script>
 </body>
 </html>
