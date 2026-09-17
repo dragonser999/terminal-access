@@ -1,47 +1,64 @@
 const express = require('express');
 const http = require('http');
-const WebSocket = require('ws');
+const { Server } = require('socket.io');
 const pty = require('node-pty');
 const path = require('path');
+const os = require('os');
 
 const app = express();
 const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
-const PORT = process.env.PORT || 3000;
+const io = new Server(server);
 
-// Serve Static files from public folder
 app.use(express.static(path.join(__dirname, 'public')));
 
-wss.on('connection', (ws) => {
-  const shell = process.env.SHELL || 'bash';
-  
-  // Create PTY Process
-  const ptyProcess = pty.spawn(shell, [], {
-    name: 'xterm-color',
-    cols: 80,
-    rows: 24,
-    cwd: process.env.HOME || process.cwd(),
-    env: process.env
-  });
-
-  // PTY -> WebSocket (Output to Browser)
-  ptyProcess.on('data', (data) => {
-    if (ws.readyState === WebSocket.OPEN) {
-      ws.send(data);
-    }
-  });
-
-  // WebSocket -> PTY (Input from Browser)
-  ws.on('message', (message) => {
-    ptyProcess.write(message.toString());
-  });
-
-  // Handle Disconnect
-  ws.on('close', () => {
-    ptyProcess.kill();
-  });
+// Fallback for root route
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Select available shell
+const shell = process.env.SHELL || (os.platform() === 'win32' ? 'powershell.exe' : '/bin/bash');
+
+io.on('connection', (socket) => {
+    console.log('User connected');
+
+    // Spawn the pty process
+    const ptyProcess = pty.spawn(shell, [], {
+        name: 'xterm-color',
+        cols: 80,
+        rows: 24,
+        cwd: process.env.HOME || '/root',
+        env: process.env
+    });
+
+    // Send terminal output to client
+    ptyProcess.onData((data) => {
+        socket.emit('output', data);
+    });
+
+    // Receive client input
+    socket.on('input', (data) => {
+        ptyProcess.write(data);
+    });
+
+    // Handle terminal resize
+    socket.on('resize', (size) => {
+        if (size && size.cols && size.rows) {
+            try {
+                ptyProcess.resize(size.cols, size.rows);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    });
+
+    socket.on('disconnect', () => {
+        console.log('User disconnected');
+        ptyProcess.kill();
+    });
+});
+
+const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+    console.log(`Server listening on port ${PORT}`);
 });
