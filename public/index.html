@@ -10,7 +10,8 @@
     body, html {
       margin: 0;
       padding: 0;
-      height: 100%;
+      height: 100vh;
+      width: 100vw;
       background-color: #000;
       overflow: hidden;
       display: flex;
@@ -19,9 +20,9 @@
     #terminal {
       flex: 1;
       width: 100%;
-      height: calc(100% - 90px);
+      height: calc(100vh - 90px);
+      background: #000;
     }
-    /* Mobile Toolbar */
     #mobile-toolbar {
       height: 90px;
       background: #121212;
@@ -57,9 +58,7 @@
 
   <div id="terminal"></div>
 
-  <!-- Mobile Extra Controls -->
   <div id="mobile-toolbar">
-    <!-- Row 1: Action Keys -->
     <div class="row">
       <button class="btn" onclick="sendKey('\x03')">Ctrl+C</button>
       <button class="btn" onclick="sendKey('\x0f')">Ctrl+O</button>
@@ -67,7 +66,6 @@
       <button class="btn" onclick="sendKey('\x1b')">ESC</button>
       <button class="btn" onclick="sendKey('\t')">TAB</button>
     </div>
-    <!-- Row 2: Navigation Arrow Keys -->
     <div class="row">
       <button class="btn" onclick="sendKey('\x1b[A')">▲</button>
       <button class="btn" onclick="sendKey('\x1b[B')">▼</button>
@@ -85,6 +83,7 @@
     const term = new Terminal({
       cursorBlink: true,
       fontSize: 14,
+      convertEol: true,
       theme: { background: '#000000' }
     });
     const fitAddon = new FitAddon.FitAddon();
@@ -92,24 +91,24 @@
 
     const termContainer = document.getElementById('terminal');
     term.open(termContainer);
-    fitAddon.fit();
 
-    // Auto Focus Mobile Keyboard
+    setTimeout(() => {
+      fitAddon.fit();
+      term.focus();
+    }, 300);
+
     function focusTerminal() {
       term.focus();
       const textarea = termContainer.querySelector('textarea');
       if (textarea) textarea.focus();
     }
 
-    focusTerminal();
     termContainer.addEventListener('click', focusTerminal);
     termContainer.addEventListener('touchstart', focusTerminal);
 
-    // Terminal Input & Output
     term.onData(data => socket.emit('input', data));
     socket.on('output', data => term.write(data));
 
-    // Send Key Function
     function sendKey(key) {
       socket.emit('input', key);
       focusTerminal();
