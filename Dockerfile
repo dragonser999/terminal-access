@@ -1,28 +1,21 @@
-# Base Node.js image (Alpine is lightweight)
-FROM node:18-alpine
+# Ubuntu base ലെയറിലുള്ള Node.js ഇമേജ് ഉപയോഗിക്കുന്നു (apt ലഭിക്കാൻ)
+FROM node:18-slim
 
-# Install build dependencies for node-pty (Python, make, g++)
-RUN apk add --no-libc-base-search --no-cache \
-    python3 \
-    make \
-    g++ \
-    bash
+# basic ആവശ്യത്തിനുള്ള പാക്കേജ് മാനേജർ അപ്‌ഡേറ്റുകൾ
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    nano \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
 
-# Set working directory inside container
 WORKDIR /usr/src/app
 
-# Copy package files and install dependencies
 COPY package*.json ./
-RUN npm install --production
+RUN npm install
 
-# Copy all application code
 COPY . .
 
-# Expose server port
 EXPOSE 3000
 
-# Set default shell environment variable
-ENV SHELL=/bin/bash
-
-# Start application
 CMD ["npm", "start"]
