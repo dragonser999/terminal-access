@@ -1,8 +1,11 @@
-# Ubuntu base ലെയറിലുള്ള Node.js ഇമേജ് ഉപയോഗിക്കുന്നു (apt ലഭിക്കാൻ)
 FROM node:18-slim
 
-# basic ആവശ്യത്തിനുള്ള പാക്കേജ് മാനേജർ അപ്‌ഡേറ്റുകൾ
+# node-pty ബിൽഡ് ചെയ്യാൻ ആവശ്യമായ Build Tools-ഉം apt, git, curl എന്നിവയും ഇൻസ്റ്റാൾ ചെയ്യുന്നു
 RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+    build-essential \
     curl \
     git \
     nano \
@@ -12,6 +15,8 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /usr/src/app
 
 COPY package*.json ./
+
+# ഇനി npm install ഒരു എററും ഇല്ലാതെ സക്സസ് ആകും
 RUN npm install
 
 COPY . .
