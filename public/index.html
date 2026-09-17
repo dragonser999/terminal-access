@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Render Web Terminal</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.1.0/css/xterm.css" />
+  <script src="https://cdn.jsdelivr.net/npm/xterm@5.1.0/lib/xterm.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      background-color: #121212;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      margin: 0;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    .header {
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 8px;
+      color: #00ff88;
+    }
+    #terminal {
+      flex: 1;
+      background: #000;
+      padding: 8px;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .keyboard {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 6px;
+      background: #1e1e1e;
+      padding: 10px;
+      border-radius: 8px;
+    }
+    .key-btn {
+      background: #2d2d2d;
+      color: #00ff88;
+      border: 1px solid #333;
+      padding: 12px 4px;
+      font-size: 13px;
+      font-weight: bold;
+      border-radius: 6px;
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .key-btn:active {
+      background: #00ff88;
+      color: #000;
+    }
+    .key-cmd {
+      color: #ffffff;
+      background: #3a3a3a;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">❯ Render Web Terminal</div>
+  <div id="terminal"></div>
+
+  <!-- Mobile On-Screen Virtual Keyboard -->
+  <div class="keyboard">
+    <button class="key-btn" onclick="sendKey('\t')">Tab</button>
+    <button class="key-btn" onclick="sendKey('\x03')">Ctrl+C</button>
+    <button class="key-btn" onclick="sendKey('\x04')">Ctrl+D</button>
+    <button class="key-btn" onclick="sendKey('\x1b[A')">▲</button>
+    <button class="key-btn" onclick="sendKey('\x1b[B')">▼</button>
+    <button class="key-btn" onclick="sendKey('\x1b[D')">◄</button>
+
+    <button class="key-btn" onclick="sendKey('\x1b[C')">►</button>
+    <button class="key-btn key-cmd" onclick="sendKey('ls -la\n')">ls</button>
+    <button class="key-btn key-cmd" onclick="sendKey('clear\n')">clear</button>
+    <button class="key-btn key-cmd" onclick="sendKey('pwd\n')">pwd</button>
+    <button class="key-btn key-cmd" onclick="sendKey('node -v\n')">node</button>
+    <button class="key-btn key-cmd" onclick="sendKey('git status\n')">git</button>
+  </div>
+
+  <script>
+    const term = new Terminal({
+      cursorBlink: true,
+      fontSize: 14,
+      theme: {
+        background: '#000000',
+        foreground: '#ffffff'
+      }
+    });
+
+    term.open(document.getElementById('terminal'));
+
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const socket = new WebSocket(`${protocol}//${window.location.host}`);
+
+    socket.onopen = () => {
+      term.write('\r\n\x1b[1;32m*** Connected to Render Terminal ***\x1b[0m\r\n\r\n');
+    };
+
+    socket.onmessage = (event) => {
+      term.write(event.data);
+    };
+
+    term.onData((data) => {
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.send(data);
+      }
+    });
+
+    function sendKey(key) {
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.send(key);
+      }
+    }
+  </script>
+</body
+  >
+    </html>
