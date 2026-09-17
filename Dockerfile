@@ -25,5 +25,4 @@ EXPOSE 3000
 ENV SHELL=/bin/bash
 
 # Start application
-CMD ["npm", "s
-tart"]
+CMD ["npm", "start"]
